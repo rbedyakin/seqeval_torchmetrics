@@ -11,7 +11,7 @@ Seqeval produces labelling scores along with its sufficient statistics from a so
 
 It takes one mandatory argument:
 
-`labels`: a list of tags, for example ["LOC", "PER", "ORG"].
+`labels`: a list of tags, for example `["LOC", "PER", "ORG"]`.
 
 It can also take several optional arguments:
 
@@ -21,6 +21,8 @@ It can also take several optional arguments:
 
 `mode`: whether to count correct entity labels with incorrect I/B tags as true positives or not. If you want to only count exact matches, pass `mode="strict"` and a specific `scheme` value. The default is `None`.
 
+`stage`: prefix for keys in output dict. For example `"test"`. The default is `None`.
+
 ```python
 >>> from metric.seqeval_metric import Seqeval
 >>> metric = Seqeval(labels=["MISC", "PER"])
@@ -28,7 +30,10 @@ It can also take several optional arguments:
 >>> references = [['O', 'O', 'O', 'B-MISC', 'I-MISC', 'I-MISC', 'O'], ['B-PER', 'I-PER', 'O']]
 >>> results = metric(predictions, references)
 >>> results
-{'MISC_precision': tensor(0.), 'PER_precision': tensor(1.), 'MISC_recall': tensor(0.), 'PER_recall': tensor(1.), 'MISC_f1': tensor(0.), 'PER_f1': tensor(1.), 'MISC_number': tensor(1), 'PER_number': tensor(1), 'overall_precision': tensor(0.5000), 'overall_recall': tensor(0.5000), 'overall_f1': tensor(0.5000)}
+    {'MISC_precision': tensor(0.), 'PER_precision': tensor(1.), 'MISC_recall': tensor(0.), 
+    'PER_recall': tensor(1.), 'MISC_f1': tensor(0.), 'PER_f1': tensor(1.), 
+    'MISC_number': tensor(1), 'PER_number': tensor(1), 'overall_precision': tensor(0.5000), 
+    'overall_recall': tensor(0.5000), 'overall_f1': tensor(0.5000)}
 ```
 
 ## Output values
@@ -50,6 +55,8 @@ Per type (e.g. `MISC`, `PER`, `LOC`,...):
 `recall`: [recall](https://en.wikipedia.org/wiki/Precision_and_recall), on a scale between 0.0 and 1.0.
 
 `f1`: [F1 score](https://en.wikipedia.org/wiki/Precision_and_recall), on a scale between 0.0 and 1.0.
+
+`number`: Number of actual positives.
 
 
 ## Limitations and bias

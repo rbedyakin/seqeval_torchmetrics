@@ -22,7 +22,7 @@ def precision_recall_f1(
             f1: Tensor of f1 per type.
         
         Note: Metric value is substituted as 0 when encountering zero division."""
-    
+
     precision = _safe_divide(num=tp_sum, denom=pred_sum, zero_division=0.0)
     recall = _safe_divide(num=tp_sum, denom=true_sum, zero_division=0.0)
     f1 = _safe_divide(num=2 * tp_sum,
@@ -46,6 +46,7 @@ class Seqeval(Metric):
                  suffix: bool = False,
                  scheme: Optional[str] = None,
                  mode: Optional[str] = None,
+                 stage: Optional[str] = None,
                  **kwargs):
         """Init Metric
 
@@ -59,6 +60,8 @@ class Seqeval(Metric):
             mode: Whether to count correct entity labels with incorrect I/B tags as true positives or not.
                 If you want to only count exact matches, pass mode="strict". 
                 default: None.
+            stage: Optional prefix for keys in output dict
+                default: None
         """
         super().__init__(**kwargs)
 
@@ -66,6 +69,7 @@ class Seqeval(Metric):
         self.suffix = suffix
         self.scheme = scheme
         self.mode = mode
+        self.stage = stage
 
         self.labels2ind = {v: i for i, v in enumerate(self.labels)}
 
@@ -112,14 +116,24 @@ class Seqeval(Metric):
         precision, recall, f1 = precision_recall_f1(pred_sum=self.pred_sum,
                                                     tp_sum=self.tp_sum,
                                                     true_sum=self.true_sum)
-        for key, array in zip(['precision', 'recall', 'f1', 'number'],
-                              [precision, recall, f1, self.true_sum]):
+        for k, array in zip(['precision', 'recall', 'f1', 'number'],
+                            [precision, recall, f1, self.true_sum]):
             for label, value in zip(self.labels, array):
-                metrics[f'{label}_{key}'] = value
-        metrics['overall_precision'], metrics['overall_recall'], metrics[
-            'overall_f1'] = precision_recall_f1(pred_sum=self.pred_sum.sum(),
-                                                tp_sum=self.tp_sum.sum(),
-                                                true_sum=self.true_sum.sum())
+                key = f'{label}_{k}'
+                if self.stage is not None:
+                    key = f'{self.stage}_{key}'
+                metrics[key] = value
+
+        precision, recall, f1 = precision_recall_f1(
+            pred_sum=self.pred_sum.sum(),
+            tp_sum=self.tp_sum.sum(),
+            true_sum=self.true_sum.sum())
+        for k, v in zip(['precision', 'recall', 'f1'],
+                        [precision, recall, f1]):
+            key = f'overall_{k}'
+            if self.stage is not None:
+                key = f'{self.stage}_{key}'
+            metrics[key] = v
 
         return metrics
 
